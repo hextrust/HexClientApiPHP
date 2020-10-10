@@ -2,7 +2,6 @@
 
 Hex Client APIs PHP helper
 
-See `example.php` also refer to the Typescript examples for more ideas.
+See `example.php` also refer to the TypeScript examples for more ideas.
 
-Using Compose, please `compose install` first.
-
+Using Composer, git clone then `compose install` first.
