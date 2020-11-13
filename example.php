@@ -14,9 +14,17 @@ $accountId = $account->result->records[0]->account_id;
 print('Accounts:\n');
 print_r($account);
 
+$wallet_type = 'ZeroKey'
 
-// Get unique deposit address
-$address = $hexApiClient->request('get', '/hexsafe/api/v4/deposit/address/asset_ticker/ETH/account_id/' . $accountId . '/wallet_name/ZeroKey?unique_eth_address=true');
+// Get unique deposit address for ETH and ERC-20 tokens, so only call it for ETH and can use the same addres also for ERC-20 tokens
+$asset_type_ticker = 'ETH'
+$address = $hexApiClient->request('get', '/hexsafe/api/v4/deposit/address/asset_ticker/' . $asset_type_ticker . '/account_id/' . $accountId . '/wallet_name/' . $wallet_type . '?unique_eth_address=true');
+print('Deposit Address:\n');
+print_r($address);
+
+// Get unique deposit address for BTC
+$asset_type_ticker = 'BTC'
+$address = $hexApiClient->request('get', '/hexsafe/api/v4/deposit/address/asset_ticker/' . $asset_type_ticker . 'ETH/account_id/' . $accountId . '/wallet_name/' . $wallet_type);
 print('Deposit Address:\n');
 print_r($address);
 
