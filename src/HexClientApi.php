@@ -1,9 +1,11 @@
 <?php
 namespace hextrust;
 
+use Exception;
+
 class HexClientApi
 {
-
+    private $httpClient;
     function __construct($endPoint, $apiKey, $secret) {
         $this->endPoint = $endPoint;
         $this->apiKey = $apiKey;
@@ -18,10 +20,12 @@ class HexClientApi
         $url = $this->endPoint . $path;
         if ($method == 'GET' || $method == 'DELETE' || $method == 'PATCH') {
             $headers = HexClientApi::generateRequestHeaders($method, $this->apiKey, $this->secret, $url);
-            return json_decode($this->httpClient->request(strtoupper($method), $url, ["headers" => $headers])->getBody());
+            // return json_decode($this->httpClient->request(strtoupper($method), $url, ["headers" => $headers])->getBody());
+            return HexClientApi::requestGuzzle(strtoupper($method), $url, ["headers" => $headers]);
         } else  if (strtolower($method) == 'post') {
             $headers = HexClientApi::generateRequestHeaders($method, $this->apiKey, $this->secret, $url ,json_encode($body), $contentType = "application/json");
-            return json_decode($this->httpClient->request(strtoupper($method), $url, ["json" => $body, "headers" => $headers])->getBody());
+            // return json_decode($this->httpClient->request(strtoupper($method), $url, ["json" => $body, "headers" => $headers])->getBody());
+            return HexClientApi::requestGuzzle(strtoupper($method), $url, ["json" => $body, "headers" => $headers]);
         }
     }
 
@@ -140,5 +144,45 @@ class HexClientApi
 
     private static function getNonce() {
         return microtime(true)*10000 . "000";
+    }
+
+    /**
+     * request http using guzzle library
+     * $requestMethod: string
+     * $uri: string
+     * $parameters: array
+     * return array
+     */
+    public function requestGuzzle($requestMethod, $uri, $parameters) {
+        try {
+            $guzzleResponse = $this->httpClient->request($requestMethod, $uri, $parameters);
+            if ($guzzleResponse->getStatusCode() == 200) {
+                return json_decode($guzzleResponse->getBody(),true);
+            } 
+        }
+        catch (\GuzzleHttp\Exception\RequestException $e) {
+            $error['success'] = false;
+            $error['result'] = [
+                "code" => $e->getResponse()->getStatusCode(),
+                "message" => $e->getMessage(),
+                "stack" => ""
+            ];
+            if($e->hasResponse()){
+                $error['response'] = $e->getResponse();
+            }
+            return $error;
+        }
+        catch (\GuzzleHttp\Exception\ClientException $e) {
+            $error['success'] = false;
+            $error['result'] = [
+                "code" => $e->getResponse()->getStatusCode(),
+                "message" => $e->getMessage(),
+                "stack" => ""
+            ];
+            if($e->hasResponse()){
+                $error['response'] = $e->getResponse();
+            }
+            return $error;
+        }
     }
 }
